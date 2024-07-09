@@ -1,0 +1,88 @@
+plugins {
+  id 'java'
+  id 'org.springframework.boot' version "${spring_boot_version}"
+  id 'io.spring.dependency-management' version "${spring_io_mng_version}"
+}
+
+group = group_name
+version = version_name
+
+java {
+  sourceCompatibility = java_version
+  targetCompatibility = java_version
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+//  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.boot:spring-boot-starter-security'
+
+
+//  runtimeOnly 'com.h2database:h2'
+//  runtimeOnly 'org.postgresql:postgresql'
+  
+  implementation 'com.fasterxml.jackson.core:jackson-databind'
+  implementation "com.google.collections:google-collections:${google_collections_version}"
+  
+  implementation "com.google.code.findbugs:jsr305:${google_findbugs_jsr305_version}"
+  
+  
+  compileOnly 'org.projectlombok:lombok' //  runtimeOnly이 아니고 compileOnly 임.
+  annotationProcessor 'org.projectlombok:lombok'
+  testAnnotationProcessor 'org.projectlombok:lombok'
+  
+  
+  runtimeOnly 'org.springframework.boot:spring-boot-devtools'
+  
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+}
+
+tasks.jar {
+  manifest {
+    attributes["Main-Class"] = "${group_name}.Application"
+  }
+}
+
+tasks.named('test') {
+  // select test framework before configuring options
+  useJUnitPlatform()
+  options {
+  }
+}
+
+tasks.named("bootJar") {
+    launchScript{
+        enabled = true
+    }
+    enabled = true
+    archiveFileName = "${project_name}.${archiveExtension.get()}"
+}
+
+bootJar {
+    layered {
+        enabled = true
+        application {
+//            layer = 'application'
+            dependencies {
+                // Add any dependencies that should be included in the application layer
+            }
+        }
+        springBoot {
+//            layer = 'spring-boot'
+        }
+    }
+}
+
+/*************************************
+ * docker images
+ * docker run -p 8080:8080 ${project_name}:latest
+ ************************************/
+tasks.named("bootBuildImage") {
+    imageName = "${project_name}:latest"
+}
+
